@@ -187,6 +187,7 @@ Polymer({
 
   _onHashClicked: function(event){
     this._hashTag = this._addHashToString(event.detail.hashTag);
+    this.$.inputSearch.focus();
   },
 
   _onRefreshClicked: function(event){
