@@ -14,6 +14,10 @@ However I got blocked when trying to make the same requests from within my polym
 With this workaround I could continue. I think it was the right thing to do in this case.
 
 
+### After getting the project get the dependencies
+
+    bower update
+
 ### Start the development server
 
 This command serves the app at `http://localhost:8080` and provides basic URL
