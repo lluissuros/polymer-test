@@ -1,0 +1,97 @@
+<!doctype html>
+
+<html>
+<head>
+  <title>mock-twitter-service test</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="../../../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../../../bower_components/web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../mock-twitter-service.html">
+</head>
+<body>
+
+  <test-fixture id="basic">
+    <template>
+      <mock-twitter-service></mock-twitter-service>
+    </template>
+  </test-fixture>
+
+  <script>
+  suite('mock-twitter-service', function() {
+
+    var element;
+
+    setup(function() {
+      element = fixture('basic');
+    });
+
+    test('instantiating the element works', function() {
+      assert.equal(element.is, 'mock-twitter-service');
+    });
+
+    test('_mockedResponse is available', function(){
+      assert.equal(element._mockedResponse.statuses.length, 100);
+    });
+
+    test('when _retrieveRandomTweets returns array length of 10', function(){
+      var result = element._retrieveRandomTweets(10, "#test");
+      assert.equal(result.length, 10);
+    });
+
+    test('when hashTag empty return empty array', function(done){
+      element.hashTag = "#test";
+      element.hashTag = undefined;
+      element.async(function(){
+        assert.equal(element.responseObject.statuses.length, 0);
+        done();
+      }, 500);
+    });
+
+    test('when hashTag === # return empty array', function(done){
+      element.hashTag = "#test";
+      element.hashTag = "#";
+      element.async(function(){
+        assert.equal(element.responseObject.statuses.length, 0);
+        done();
+      }, 500);
+    });
+
+    test('when changing hashTag new elements loaded', function(done){
+      assert.isObject(element.responseObject);
+      assert.isUndefined(element.responseObject.statuses);
+      element.hashTag = "#test2";
+      element.async(function(){
+        assert.equal(element.responseObject.statuses.length, 15);
+        done();
+      }, 500);
+    });
+
+    test('when changing hashTag new elements contain the new hashTag', function(done){
+      element.hashTag = "#test3";
+      element.async(function(){
+        element.responseObject.statuses.forEach(status =>{
+          assert.isTrue(status.text.includes("#test3"));
+        });
+        done();
+      }, 1400);
+    });
+
+
+    test('when retrieveMoreResults adds to array a length of 10', function(done){
+      element.hashTag = "#test5";
+      element.async(function(){
+        assert.equal(element.responseObject.statuses.length,15);
+        element.retrieveMoreResults();
+        element.async(function(){
+          assert.equal(element.responseObject.statuses.length,25);
+          done();
+        }, 400);
+      },2000);
+    });
+
+  });
+  </script>
+</body>
+</html>

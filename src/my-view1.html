@@ -1,0 +1,205 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
+<link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+
+
+<link rel="import" href="../src/twitter-service/twitter-service.html">
+<link rel="import" href="../src/twitter-card/twitter-card.html">
+<link rel="import" href="../src/utility-functions-behavior.html">
+
+<dom-module id="my-view1">
+  <template>
+  <style>
+  :host {
+    display: block;
+    --app-primary-color: #00BCD4;
+    --app-secondary-color: black;
+
+    padding: 10px;
+  }
+  paper-button{
+    background: var(--app-primary-color);
+    color: white;
+    margin-bottom: 14px;
+    margin-top: 5px;
+  }
+
+  #container{
+    max-width: 400px;
+    margin:0 auto;
+  }
+
+  paper-checkbox .subtitle {
+    display: block;
+    font-size: 0.8em;
+    margin-top: 2px;
+    max-width: 150px;
+  }
+
+  paper-input {
+    --paper-input-container-focus-color: var(--app-primary-color);
+    --paper-input-container-input-color: black;
+  }
+
+  .loader {
+    background-color:  var(--app-primary-color);
+    text-align: center;
+    height: 44px;
+    font: 13px arial;
+    line-height: 44px;
+    color: white;
+  }
+  </style>
+
+  <!-- the service, in my case is mocked-->
+  <twitter-service
+  id="twitterService"
+  data="{{_data}}"
+  hash-tag = "[[_hashTag]]"
+  ></twitter-service>
+
+  <div id="container">
+    <paper-input id="inputSearch"
+    label="search #tags"
+    on-input="onInputSearch"
+    value="[[_hashTag]]">
+  </paper-input>
+
+  <!-- <template is="dom-if" if="{{!refreshValue}}"> -->
+    <paper-button id="refresher" raised on-click="_onRefreshClicked">Refresh!</paper-button>
+  <!-- </template> -->
+
+  <template id="resultList" is="dom-repeat" items="[[_data]]" as="status" >
+    <twitter-card
+    retweet-count="[[status.retweet_count]]"
+    tweeted-by = "[[status.user.screen_name]]"
+    tweet-text = "[[status.text]]"
+    ></twitter-card>
+  </template>
+
+  <div id="loader" class="loader">Fetching new items...</div>
+
+</div>
+</template>
+
+<script>
+Polymer({
+  is: 'my-view1',
+
+  properties: {
+
+    refreshValue: {
+      type: String,
+      value :"",
+      observer:'_autoRefresh'
+    },
+
+    _hashTag: {
+      type: String
+    },
+
+    /*data coming from the service*/
+    _data: {
+      type: Object,
+    },
+
+    /*enable random pic generator ;)*/
+    _showRandomPics: {
+      type: Boolean,
+      value: true
+    },
+
+    _showRefresherButton: {
+      type: Boolean,
+      value: true
+    }
+
+  },
+
+  observers: [
+    '_dataChanged(_data.*)'
+  ],
+
+  listeners: {
+    'twitter-card-hash-clicked': '_onHashClicked'
+  },
+
+  behaviors:[
+    Polymer.UtilityFunctionsBehavior
+  ],
+
+  attached: function(){
+    this.$.loader.style.display= "none";
+  },
+
+  _autoRefresh: function(){
+    if(!this.refreshValue){
+      this.$.refresher.hidden = false;
+      return;
+    }else{
+      this.$.refresher.hidden = true;
+      this.$.twitterService.refresh();
+      this.async(this._autoRefresh,this.refreshValue*1000);
+    }
+  },
+
+  onInputSearch: function(event){
+    let str = event.target.value;
+    this._hashTag = this._addHashToString(str);
+  },
+
+  /*adds prefix # to string if it hasn't any*/
+  _addHashToString: function (str){
+    if(!str){
+      return undefined;
+    }else if(str[0] === "#"){
+      return str;
+    }
+    return "#"+str;
+  },
+
+  _dataChanged: function(newvalue){
+    if(this._data.length>0){
+      this.$.loader.style.display= "block";
+    }else{
+      this.$.loader.style.display= "none";
+    }
+  },
+
+  _onHashClicked: function(event){
+    this._hashTag = this._addHashToString(event.detail.hashTag);
+  },
+
+  _onRefreshClicked: function(event){
+    this.$.twitterService.refresh();
+  },
+
+  /*load more data*/
+  onScrollDown: function(){
+    if(this._hashTag){
+      this.$.twitterService.getMoreResults();
+    }
+  }
+
+});
+</script>
+</dom-module>

@@ -1,0 +1,93 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../utility-functions-behavior.html">
+<link rel="import" href="mock-twitter-data-container.html">
+
+<!--
+`mock-twitter-service`
+retrieves mocked data emulating the Twitter Search for a given #tag. I added some async to make it realistic!
+
+@demo demo/index.html
+-->
+
+<dom-module id="mock-twitter-service">
+    <template>
+        <mock-twitter-data-container mock-response="{{_mockedResponse}}"></mock-twitter-data-container>
+    </template>
+
+    <script>
+        Polymer({
+
+            is: 'mock-twitter-service',
+
+            properties: {
+
+                /*the object to be returned, simulating a GET request to twitter API*/
+                responseObject: {
+                    type: Object,
+                    value: function(){ return {}; },
+                    notify:true
+                },
+
+                /*contains the whole 100lenght object*/
+                _mockedResponse: {
+                    type: Object
+                },
+
+                hashTag: {
+                    type: String,
+                    observer: "_onHashTagChange"
+                }
+            },
+
+            behaviors:[
+                Polymer.UtilityFunctionsBehavior
+            ],
+
+            /*return mocked object*/
+            _onHashTagChange: function(hashTag){
+                if(!hashTag || hashTag==="#"){
+                    this.debounce('returnMock', function() {
+                        //I would do the same on the on-error callback handling for iron-ajax
+                        this.set('responseObject.statuses',[]);
+                    }, parseInt(Math.random() * 500));
+                    return;
+                }
+
+                this.debounce('returnMock', function() {
+                    this.set('responseObject.statuses', this._retrieveRandomTweets(15, hashTag));
+                }, parseInt(Math.random() * 500));
+            },
+
+            /*simulates refresh*/
+            refresh: function(){
+                if(this.responseObject.statuses && this.responseObject.statuses.length>0){
+                    this.unshift('responseObject.statuses', this._retrieveRandomTweets(1, this.hashTag)[0]);
+                }
+            },
+
+            /*to be called if the user wnats more results*/
+            retrieveMoreResults: function(){
+                this.debounce('returnMock', function() {
+                    let concatArray = this.responseObject.statuses.concat(this._retrieveRandomTweets(10, this.hashTag));
+                    //this.responseObject.statuses = concatArray;
+                    this.set('responseObject.statuses',concatArray);
+                }, 300);
+            },
+
+            /*retrun the given number of tweets with the #test hash replaced by the new hashTag*/
+            _retrieveRandomTweets: function(count, hashTag){
+                let result = [];
+                for(let i=0; i<count; i++){
+                    let randomStatus = this._mockedResponse.statuses[parseInt(Math.random() * 100)];
+                    let matches = this.returnHashTagsMatches(randomStatus.text);
+                    if(matches){
+                        randomStatus.text = randomStatus.text.replace(matches[0], hashTag);
+                    }
+                    result.push(randomStatus);
+                }
+                return result;
+            }
+
+        });
+    </script>
+</dom-module>

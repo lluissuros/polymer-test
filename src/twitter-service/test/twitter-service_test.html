@@ -1,0 +1,59 @@
+<!doctype html>
+
+<html>
+<head>
+    <title>twitter-service test</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+    <script src="../../../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../../bower_components/web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../twitter-service.html">
+</head>
+<body>
+
+<test-fixture id="basic">
+    <template>
+        <twitter-service></twitter-service>
+    </template>
+</test-fixture>
+
+<script>
+    suite('twitter-service', function() {
+
+        var element;
+
+        setup(function() {
+            element = fixture('basic');
+        });
+
+        test('instantiating the element works', function() {
+            assert.equal(element.is, 'twitter-service');
+        });
+
+        test('when new responseObject new Data is created', function(done){
+            assert.isTrue(element.data.length === 0);
+            element.hashTag = "#test";
+                element.async(function(){
+                    assert.isTrue(element.data.length === 15);
+                    done();
+                },1000);
+        });
+
+        test('getMoreResults results in more data lenght', function(done){
+            assert.isTrue(element.data.length === 0);
+            element.hashTag = "#test2";
+                element.async(function(){
+                    assert.isTrue(element.data.length === 15);
+                    element.getMoreResults();
+                    element.async(function(){
+                        assert.isTrue(element.data.length === 25);
+                        done();
+                    },1000);
+                },1000);
+        });
+
+    });
+</script>
+</body>
+</html>

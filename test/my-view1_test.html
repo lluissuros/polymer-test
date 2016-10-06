@@ -1,0 +1,114 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>my-view1</title>
+
+  <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../bower_components/web-component-tester/browser.js"></script>
+
+  <!-- Import the element to test -->
+  <link rel="import" href="../src/my-view1.html">
+</head>
+<body>
+  <test-fixture id="basic">
+    <template>
+      <my-view1></my-view1>
+    </template>
+  </test-fixture>
+
+  <script>
+  suite('my-view1 tests', function() {
+    var element;
+
+    setup(function() {
+      element = fixture('basic');
+    });
+
+    test('instantiating the element works', function() {
+      assert.equal(element.is, 'my-view1');
+    });
+
+    test('Refresh button is visible at startup', function(done) {
+      flush(function() {
+        assert.isFalse(element.$.refresher.hidden);
+        done();
+      });
+    });
+
+    test('Refresh button is not visible when user provides refreshValue', function(done) {
+      flush(function() {
+        assert.isFalse(element.$.refresher.hidden);
+        element.refreshValue = "2";
+        assert.isTrue(element.$.refresher.hidden);
+        done();
+      });
+    });
+
+    test('Refresh button is visible again when user sets no refreshValue', function(done) {
+      flush(function() {
+        assert.isFalse(element.$.refresher.hidden);
+        element.refreshValue = "2";
+        assert.isTrue(element.$.refresher.hidden);
+        element.refreshValue = "";
+        assert.isFalse(element.$.refresher.hidden);
+        done();
+      });
+    });
+
+    test('_addHashToString prefixes string with # if not provided', function() {
+      assert.isTrue(element._addHashToString("#test") === "#test");
+      assert.isTrue(element._addHashToString("test") === "#test");
+      assert.isTrue(element._addHashToString("#test#") === "#test#");
+      assert.isTrue(element._addHashToString("##test") === "##test");
+    });
+
+    test('searching for a hashTag returns data', function(done) {
+      assert.isTrue(element._data.length === 0);
+      element._hashTag = "#test";
+      element.async(function(){
+        assert.isTrue(element._data.length > 0);
+        done();
+      }, 2000);
+    });
+
+    test('getting data from service results in dom-repeat n elements displayed', function(done) {
+      assert.isTrue(element._data.length === 0);
+      assert.isTrue(element.$.resultList.items.length === 0);
+      element._hashTag = "#test";
+      element.async(function(){
+        assert.isTrue(element.$.resultList.items.length === element._data.length);
+        assert.isTrue(element.$.resultList.items.length > 0);
+        done();
+      }, 2000);
+    });
+
+    test('scroll hitting bottom results in loading more elements', function(done) {
+      element._hashTag = "#test";
+      element.async(function(){
+        var numberOfResults =  element._data.length;
+        element.onScrollDown();
+        element.async(function(){
+          var numberResultsAfterScroll = element._data.length;
+          assert.isTrue(numberResultsAfterScroll > numberOfResults);
+          done();
+        },2000);
+      }, 2000);
+    });
+
+  });
+  </script>
+</body>
+</html>

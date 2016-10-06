@@ -1,0 +1,84 @@
+<!doctype html>
+
+<html>
+<head>
+  <title>twitter-card test</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="../../../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../../../bower_components/web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../twitter-card.html">
+</head>
+<body>
+
+  <test-fixture id="basic">
+    <template>
+      <twitter-card></twitter-card>
+    </template>
+  </test-fixture>
+
+  <script>
+  suite('twitter-card', function() {
+
+    var element;
+
+    setup(function() {
+      element = fixture('basic');
+    });
+
+    test('instantiating the element works', function() {
+      assert.equal(element.is, 'twitter-card');
+    });
+
+    test('when simple tweetText is provided simple text is appended', function(){
+      assert.isTrue(element.$.text.innerHTML === "");
+      var testText = "test test test";
+      element.tweetText = testText;
+      assert.isTrue(element.tweetText !== "");
+      assert.isTrue(element.tweetText === testText);
+    });
+
+    test('when tweetText with #hastag is provided processed text is appended', function(){
+      var testText = "test #test test #test2";
+      assert.isTrue(element.$.text.innerHTML === "");
+      element.tweetText = testText;
+      assert.isTrue(element.$.text.getElementsByTagName('button').length === 2);
+    });
+
+    test('when tweetText with #hastag and @ is provided processed text is appended', function(){
+      var testText = "test1 #test test2 @test3 test4 @test5 #test2";
+      assert.isTrue(element.$.text.innerHTML === "");
+      element.tweetText = testText;
+      assert.isTrue(element.$.text.getElementsByTagName('button').length === 2);
+      assert.isTrue(element.$.text.getElementsByTagName('label').length === 5);
+    });
+
+    test('_createClickableHashTag returns button containig hashTag', function(){
+      var hashTag = "#test"
+      var result = element._createClickableHashTag(hashTag);
+      assert.isTrue(result.tagName === "BUTTON");
+      assert.isTrue(result.innerHTML === hashTag);
+      assert.isTrue(result.style.fontWeight === "bold");
+    });
+
+    test('_createHightLightAt returns label containig text with style', function(){
+      var at = "@test"
+      var result = element._createHightLightAt(at);
+      assert.isTrue(result.tagName === "LABEL");
+      assert.isTrue(result.innerHTML === at);
+      assert.isTrue(result.style.color === "rgb(0, 188, 212)");
+    });
+
+    test('_createTextFragment returns label containig text with style', function(){
+      var text = "test testing more text"
+      var result = element._createTextFragment(text);
+      assert.isTrue(result.tagName === "LABEL");
+      assert.isTrue(result.innerHTML === text);
+      assert.isTrue(!result.style.color);
+    });
+
+  });
+  </script>
+</body>
+</html>

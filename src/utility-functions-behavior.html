@@ -1,0 +1,17 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<script>
+
+    Polymer.UtilityFunctionsBehavior = {
+
+        /*return hashtags array*/
+        returnHashTagsMatches: function(str){
+            return str.match(/(#[a-z0-9][a-z0-9\-_]*)/ig);
+        },
+
+        /*return hashtags array*/
+        returnAtAndHashMatches: function(str){
+            return str.match(/([#@][a-z0-9][a-z0-9\-_]*)/ig);
+        }
+
+    };
+</script>

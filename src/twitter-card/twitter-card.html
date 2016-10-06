@@ -1,0 +1,161 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../utility-functions-behavior.html">
+
+<!--
+`twitter-card`
+shows basic tweet info and allows user to click the hastags. at the moment shows random pics beacuse we have.
+
+Throws 'twitter-card-hash-clicked' event when a hashTag is clicked with the hashTag text.
+
+@demo demo/index.html
+-->
+
+<dom-module id="twitter-card">
+    <template>
+        <style>
+            :host {
+                display: block;
+                background-color: #BDBDBD;
+
+                padding: 5px;
+            }
+            #container > paper-card {
+                box-sizing: border-box;
+                margin: 4px;
+                flex: 0 0 auto;
+                background-color: #FFC107
+            }
+            p{
+                font-size: 120%;
+            }
+            .tweet-data {
+                padding-left: 13px;
+                padding-bottom: 10px;
+                background-color: #FFECB3;
+            }
+             paper-button{
+                background: #FFECB3;
+            }
+        </style>
+        <div id="container">
+            <paper-card image="{{imageUrl}}">
+                <div class="card-content">
+                <div class="text"></div>
+                    <p id="text"></p>
+                </div>
+
+                <div class="tweet-data">
+                    <div role="listbox">
+                        <paper-item-body two-line>
+                            <div secondary>Tweeted by:</div>
+                            <div>{{tweetedBy}}</div>
+                        </paper-item-body>
+                        <paper-item-body>
+                            <div secondary>Retweet Count:</div>
+                            <div>{{retweetCount}}</div>
+                        </paper-item-body>
+                    </div>
+                </div>
+            </paper-card>
+        </div>
+    </template>
+
+    <script>
+        Polymer({
+
+            is: 'twitter-card',
+
+            properties: {
+                tweetText: {
+                    type: String,
+                    notify:false,
+                    observer: "_createCardText"
+                },
+                retweetCount:{
+                    type: Number
+                },
+                tweetedBy:{
+                    type: String
+                },
+                imageUrl:{
+                    type: String
+                }
+            },
+
+            behaviors:[
+                Polymer.UtilityFunctionsBehavior
+            ],
+
+            /*get given text, make hashTags clickable and append to dom*/
+            _createCardText: function(tweetText){
+                this.$.text.innerHTML= "";
+                let matchesArray = this.returnAtAndHashMatches(tweetText);
+
+                let index = 0;
+                if(matchesArray){
+                  matchesArray.forEach(match =>{
+                      let matchIndex = tweetText.indexOf(match);
+
+                      if(match[0] === "@"){
+                          var button = this._createHightLightAt(tweetText.substring(matchIndex, matchIndex+match.length));
+                      }else{
+                          var button = this._createClickableHashTag(tweetText.substring(matchIndex, matchIndex+match.length));
+                      }
+
+                      let text = this._createTextFragment(tweetText.substring(index,matchIndex));
+                      index = matchIndex+match.length;
+
+                      if(text.innerHTML.trim()){
+                        this.$.text.appendChild(text);
+                      }
+                      this.$.text.appendChild(button);
+                  });
+                }else{
+                  //plain text provided
+                  this.$.text.innerHTML= tweetText;
+                }
+            },
+
+            /*creates a clickable hashtag */
+            _createClickableHashTag: function(hashTag){
+                let button = document.createElement('button');
+                button.style.background = "none";
+                button.style.border = "none";
+                button.style.fontWeight = "bold";
+                button.style.cursor= "pointer";
+                button.style.fontSize= "100%";
+                button.style.color= "#212121";
+                button.textContent = hashTag;
+
+                button.onclick = function(event) {
+                    this.fire('twitter-card-hash-clicked', {hashTag: event.target.innerText});
+                }.bind(this);
+
+                return button;
+            },
+
+            /*creates a clickable hashtag */
+            _createHightLightAt: function(hashTag){
+                let label = document.createElement('label');
+                label.textContent = hashTag;
+                label.style.color = "#00BCD4";
+                return label;
+            },
+
+            _createTextFragment: function(text){
+                let label = document.createElement('label');
+                label.textContent = text;
+                return label;
+            },
+
+            //TODO: nice to have
+            _makeUrlsClickable: function(){},
+
+        });
+    </script>
+</dom-module>

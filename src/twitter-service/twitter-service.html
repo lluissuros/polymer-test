@@ -1,0 +1,62 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../utility-functions-behavior.html">
+<link rel="import" href="mock-twitter-service.html">
+
+<!--
+`twitter-service`
+gets twitter response from the call, builds the data object needed for the view.
+
+@demo demo/index.html
+-->
+
+<dom-module id="twitter-service">
+    <template>
+        <mock-twitter-service id="mockedservice" response-object="{{_responseObject}}" hash-tag="[[hashTag]]"></mock-twitter-service>
+    </template>
+
+    <script>
+        Polymer({
+
+            is: 'twitter-service',
+
+            properties: {
+                data: {
+                    type: Object,
+                    notify: true,
+                    value: function(){return []; }
+                },
+
+                hashTag: {
+                    type: String,
+                },
+
+                /*the object to be returned, simulating a GET request to twitter API*/
+                _responseObject: {
+                    type: Object,
+                },
+
+            },
+
+            observers: [
+                '_responseObjectChanged(_responseObject.*)'
+            ],
+
+            /*calls again the service*/
+            refresh: function(){
+                this.$.mockedservice.refresh();
+            },
+
+            getMoreResults: function(){
+                this.$.mockedservice.retrieveMoreResults();
+            },
+
+            _responseObjectChanged: function(responseObject){
+                if(this._responseObject.statuses){
+                    /*TODO: I should clone it but have no time*/
+                    this.data = [];
+                    this.data = this._responseObject.statuses;
+                }
+            }
+        });
+    </script>
+</dom-module>
